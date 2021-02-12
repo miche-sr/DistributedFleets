@@ -58,7 +58,7 @@ public class Vehicle {
 	private HashMap<Integer, Double> truncateTimes = new HashMap<Integer, Double>();
 
 	// VARIABILI PER LE SEZIONI CRITICHE
-	private int criticalPoint = -1; // -1 if no critical point
+	private int criticalPoint = 0; 
 	private boolean csTooClose = false;
 	private int stoppingPoint = -1; // punto di fermata, a ogni ciclo: al quale mi fermo da dove sono
 	private double slowingPoint = -1; // punto di frenata, unico: per fermarsi prima del p. critico
