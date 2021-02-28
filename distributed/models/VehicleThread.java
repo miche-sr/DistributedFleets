@@ -55,6 +55,7 @@ public class VehicleThread implements Runnable {
 		double start = System.currentTimeMillis();
 		if(v.isTrakerEnable()) v.startTraker();
 		// int alpha =(int) v.getalpha();
+		// System.out.println("alpha " + alpha);
 		// int[] chunkArray = new int[alpha];
 		// for (int k=0;k==alpha;k++){
 		// 	chunkArray[k]=0;
@@ -114,15 +115,19 @@ public class VehicleThread implements Runnable {
 				 ** COMPUTE THE PRECEDENCES ** 
 				 *******************************/
 				
-				//  v.setCriticalPoint(chunkArray[0]);
-				//  	for (int k=1;k<(alpha);k++){
-				//  	chunkArray[k-1]=chunkArray[k];
-				//  }
-				// chunkArray[alpha-1] = (v.getPathIndex() + v.getSpatialEnvelope().getPath().length-1);
+				//   v.setCriticalPoint(chunkArray[0]);
+				//   if(v.getID() == 1) System.out.println("A"+v.getCriticalPoint() +" "+chunkArray);
+				//   	for (int k=1;k<(alpha);k++){
+				//   	chunkArray[k-1]=chunkArray[k];
+				// 		if(v.getID() == 1) System.out.println("chunk "+chunkArray[k-1]);
+				//   }
+				//  chunkArray[alpha-1] = (v.getPathIndex() + v.getSpatialEnvelope().getPath().length-1);
 				v.setCriticalPoint(v.getPathIndex() + v.getSpatialEnvelope().getPath().length-1); 
 				
 				precedence();
-
+				
+				//if( this.elapsedTrackingTime < alpha* v.getTc()*Vehicle.mill2sec) v.setCriticalPoint(0); 
+				
 				/************************************
 				 ** 	SET CRITICAL AISLE	 ** 
 				 ************************************/

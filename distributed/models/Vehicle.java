@@ -279,7 +279,7 @@ public class Vehicle {
 		System.out.println("\n New number of all Cs : " + allCs/2);
 		traker.setWholeSe(wholeSe);
 		traker.setPath(path);
-		setSpatialEnvelope2(true,0);
+		setChunk(true,0);
 	}
 
 	public PoseSteering[] getWholePath() {
