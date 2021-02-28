@@ -15,7 +15,7 @@ public class Test4Grid {
 	private static String yamlFile = null;
 
 	public static Thread initThread(int id, Vehicle.Category ctg, Pose start, Pose[] goal) {
-		Vehicle vehicle = new Vehicle(id, ctg, start, goal,yamlFile);
+		Vehicle vehicle = new Vehicle(id, ctg, start, goal, 200, 2, false,yamlFile);
 		Thread thread = new Thread(new VehicleThread(vehicle));
 		vehicleList.add(vehicle);
 		return thread;
@@ -28,10 +28,9 @@ public class Test4Grid {
 
         BrowserVisualizationDist viz = new BrowserVisualizationDist();
 		if (yamlFile != null) viz.setMap(yamlFile);
-		viz.setInitialTransform(25, 10, 2);
+		viz.setInitialTransform(20, 10, 2);
 
 
-		/* pose libere */
 		Pose start1 = new Pose(1, 11.2, Math.PI); 	Pose[] goal1 = { new Pose(16, 11.2, Math.PI) };	
 		Pose start2 = new Pose(1, 1.2, Math.PI); 	Pose[] goal2 = { new Pose(16, 1.2, Math.PI) };
 		Pose start3 = new Pose(1, 3.7, Math.PI); 		Pose[] goal3 = { new Pose(16, 3.7, Math.PI) };
@@ -235,18 +234,9 @@ public class Test4Grid {
 		}
 	}
 	for (Vehicle vh : vehicleList){
-		vh.setRadius(rMax);
-		vh.setSecForSafety(tMax);
-		vh.setVehicleList(vehicleList);
-		vh.setMainTable(mainTable);
-		vh.setSlowingPointNew();
-		vh.setTimes();
-		vh.setSpatialEnvelope2(true,0);
-		vh.getNears();
-		vh.sendNewRr();
-		vh.setVisualization(viz);
+		vh.Init(rMax, tMax, vehicleList, mainTable, viz);
 		vh.setReplan(false);
-		vh.initViz();
+		
 	}
 	//System.out.println("\n" + "Radius "  + rMax );
 	Thread.sleep(1500);

@@ -15,7 +15,7 @@ public class Test8Robot {
 	private static String yamlFile = null;
 
 	public static Thread initThread(int id, Vehicle.Category ctg, Pose start, Pose[] goal) {
-		Vehicle vehicle = new Vehicle(id, ctg, start, goal,yamlFile);
+		Vehicle vehicle = new Vehicle(id, ctg, start, goal, 50, 3, true,yamlFile);
 		Thread thread = new Thread(new VehicleThread(vehicle));
 		vehicleList.add(vehicle);
 		return thread;
@@ -28,7 +28,7 @@ public class Test8Robot {
 
 
 
-		/* pose libere */
+		/* Random poses in obstacle-free environment */
 		Pose start1 = new Pose(-1, 0, Math.PI); Pose[] goal1 = { new Pose(20, 0, Math.PI) };
 		Pose start2 = new Pose(3, 5, -Math.PI/2); Pose[] goal2 = {new Pose(3, -13, -Math.PI/2) };
 		Pose start3 = new Pose(10, -12, 3*Math.PI/2); Pose[] goal3 = {new Pose(10, 8, 3*Math.PI/2) };
@@ -69,18 +69,7 @@ public class Test8Robot {
 	}
 	//vehicleList.clear();
 	for (Vehicle vh : vehicleList){
-		vh.setRadius(rMax);
-		//vh.setSecForSafety(tMax);
-		
-		vh.setVehicleList(vehicleList);
-		vh.setMainTable(mainTable);
-		vh.setSlowingPointNew();
-		vh.setTimes();
-		vh.setSpatialEnvelope2(true,0);
-		//vh.getNears();
-		vh.sendNewRr();
-		vh.setVisualization(viz);
-		vh.initViz();
+		vh.Init(rMax, tMax, vehicleList, mainTable, viz);
 	}
 	System.out.println("\n" + "Radius "  + rMax );
 	Thread.sleep(1000);

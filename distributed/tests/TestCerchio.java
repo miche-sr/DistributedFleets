@@ -17,7 +17,7 @@ public class TestCerchio {
 	private static ArrayList<Thread> threads = new ArrayList<Thread>();
 
 	public static Thread initThread(int id, Vehicle.Category ctg, Pose start, Pose[] goal) {
-		Vehicle vehicle = new Vehicle(id, ctg, start, goal,yamlFile);
+		Vehicle vehicle = new Vehicle(id, ctg, start, goal, 350, 1, false,yamlFile);
 		Thread thread = new Thread(new VehicleThread(vehicle));
 		vehicleList.add(vehicle);
 		threads.add(thread);
@@ -29,13 +29,13 @@ public class TestCerchio {
 		Vehicle.Category a = Vehicle.Category.AMBULANCE;
 		Vehicle.Category c = Vehicle.Category.CAR;
 		
-		int NUMBER_ROBOTS = 90;
+		int NUMBER_ROBOTS = 60;
 		double radius = 40 ;
 
 
 		BrowserVisualizationDist viz = new BrowserVisualizationDist();
 		if (yamlFile != null) viz.setMap(yamlFile);
-		viz.setInitialTransform(12,radius+3, radius+1);
+		viz.setInitialTransform(25,radius+1, radius+1);
 
 		double theta = 0.0;
 		
@@ -63,22 +63,12 @@ public class TestCerchio {
 			}
 		}
 		for (Vehicle vh : vehicleList){
-			vh.setRadius(rMax);
-			vh.setSecForSafety(tMax);
-			vh.setTrafficLightsList(trafficLightsList);
-			vh.setVehicleList(vehicleList);
-			vh.setMainTable(mainTable);
-			vh.setSlowingPointNew();
-			vh.setTimes();
-			vh.setSpatialEnvelope2(true,0);
-			vh.getNears();
-			vh.sendNewRr();
-			vh.setVisualization(viz);
+			vh.Init(rMax, tMax, vehicleList, mainTable, viz);
 			vh.setReplan(false);
-			vh.initViz();
 			vh.setFilterCs(true);
+			vh.setTrakerEnable(false);
 		}
-		Thread.sleep(1200);
+		Thread.sleep(5000);
 		System.out.println("\n" + "Radius "  + rMax );
 		System.out.println("\n" + "Radius "  + rMax );
 		int all = 0;
@@ -91,7 +81,7 @@ public class TestCerchio {
 		for(Thread tr : threads){
 			tr.start();
 			try {
-				TimeUnit.MILLISECONDS.sleep(5);
+				TimeUnit.MILLISECONDS.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -102,8 +92,8 @@ public class TestCerchio {
 		
 		double finish = System.currentTimeMillis();
 		double timeElapsed = (finish - start)/1000;
-		System.out.println("\n Numero Robot  - " + NUMBER_ROBOTS );
-		System.out.println("\n Time Elapsed Complessivo - " + timeElapsed + "  ovvero in minuti: "+timeElapsed/60 );
+		System.out.println("\n Number of Robots - " + NUMBER_ROBOTS );
+		System.out.println("\n Totat Time Elapsed - " + timeElapsed + ", in minutes: "+timeElapsed/60 );
 	
 	}
 }

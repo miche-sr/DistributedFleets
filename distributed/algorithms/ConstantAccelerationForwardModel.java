@@ -10,27 +10,27 @@ import org.metacsp.multi.spatioTemporal.paths.PoseSteering;
 import org.metacsp.multi.spatioTemporal.paths.Trajectory;
 import org.metacsp.multi.spatioTemporal.paths.TrajectoryEnvelope;
 import se.oru.coordination.coordination_oru.distributed.models.Vehicle;
+import se.oru.coordination.coordination_oru.distributed.models.Vehicle.Behavior;
 import se.oru.coordination.coordination_oru.distributed.algorithms.Derivative;
 import se.oru.coordination.coordination_oru.distributed.models.State;
 
 public class ConstantAccelerationForwardModel {
 		
-	private double maxAccel, maxVel;
-	private double temporalResolution = -1;
+	private double maxAccel, maxVel, alpha;
+	
 	private int trackingPeriodInMillis = 0;
 	private int controlPeriodInMillis = -1;
 	private static int MAX_TX_DELAY = 0;
 	
-	public static enum Behavior {
-		start,moving,slowing,minVel,stop,waiting,reached,
-	};
 	
-	private Behavior robotBehavior = Behavior.start;
+	
+	
 
-	public ConstantAccelerationForwardModel(Vehicle v, double temporalResolution) {
+	public ConstantAccelerationForwardModel(Vehicle v) {
 		this.maxAccel = v.getAccMAx();
-		this.maxVel = v.getVelMax();	
-		this.temporalResolution = temporalResolution;
+		this.maxVel = v.getVelMax();
+		this.alpha = v.getalpha();
+		
 		this.controlPeriodInMillis = v.getTc();
 //		this.trackingPeriodInMillis = trackingPeriodInMillis;
 	}
@@ -71,23 +71,24 @@ public class ConstantAccelerationForwardModel {
 		return currentPathIndex;
 	}
 	
-	// fornisce il path index sul quale ci si fermerà date le condizioni attuali
-	public int getEarliestStoppingPathIndex(Vehicle v) {
+	// compute either stopping point braking from next period, or the decision point
+	public int getEarliestStoppingPathIndex(Vehicle v,boolean lookForward) {
 		State auxState = new State(v.getDistanceTraveled(), v.getVelocity());
 		double time = 0.0;
 		double deltaTime = v.getTc()*Vehicle.mill2sec;
+		double future = 0;
+		if (lookForward) future = 1+alpha;
 
-		// considero ritardi dovuti a periodo di controllo e tempo di aggiornamento del ciclo //
-		long lookaheadInMillis = 1*(this.controlPeriodInMillis);// + MAX_TX_DELAY + trackingPeriodInMillis);
-		//avanzamento nel periodo di ritardo
-		if (lookaheadInMillis > 0 && robotBehavior == Behavior.moving) {
-			while (time*temporalResolution < lookaheadInMillis) {
+
+		double lookaheadInMillis = (1+future)*(v.getTc()*Vehicle.mill2sec);
+		if (lookaheadInMillis > 0 && v.getBehavior() == Behavior.moving ) {
+			while (time < lookaheadInMillis) {
 				integrateRK4(auxState, time, deltaTime, false, maxVel, 1.0, maxAccel);
 				time += deltaTime;
 			}
 		}
 		
-		//Frenata
+		// braking
 		while (auxState.getVelocity() > v.getTc()*Vehicle.mill2sec*v.getAccMAx()) {
 			integrateRK4(auxState, time, deltaTime, true, maxVel, 1.0, maxAccel);
 			time += deltaTime;
@@ -95,7 +96,7 @@ public class ConstantAccelerationForwardModel {
 		return getPathIndex(v.getWholePath(), auxState);
 	}
 	
-	// from integrateRK4 in TrajectoryEnvelopeTrackerRK4: line 337
+	// from integrateRK4 in TrajectoryEnvelopeTrackerRK4 of Centralized CoordinationOru project: line 337
 	public static void integrateRK4(State state, double time, double deltaTime, boolean slowDown, double MAX_VELOCITY, double MAX_VELOCITY_DAMPENING_FACTOR, double MAX_ACCELERATION) {
 		
 		Derivative a = Derivative.evaluate(state, time, 0.0, new Derivative(), slowDown, MAX_VELOCITY, MAX_VELOCITY_DAMPENING_FACTOR, MAX_ACCELERATION);
@@ -111,76 +112,8 @@ public class ConstantAccelerationForwardModel {
 		state.setVelocity(state.getVelocity()+dvdt*deltaTime);
 	}
 
-		//from run in TrajectoryEnvelopeTrackerRK4: line 548
-		public State updateState(Vehicle v, double elapsedTrackingTime,boolean FreeAccess) {
-		
-			State state = new State(v.getDistanceTraveled(), v.getVelocity());	// state attuale
-			double velMaxL = v.getVelMax();
-			double deltaT =  v.getTc()*Vehicle.mill2sec;
-			boolean skipIntegration = false;
-			
-			if (v.getPathIndex() >= v.getCriticalPoint() && state.getVelocity() <= 0.0 ) { //-3
-				skipIntegration = true;
-				robotBehavior = Behavior.stop; // sono fermo
-			}	
-			
-			if (!skipIntegration) {
-	 
-	
-				//saturazioni velocità
-				if ( ((state.getVelocity() <= deltaT*v.getAccMAx() && robotBehavior == Behavior.slowing) 
-					|| robotBehavior == Behavior.minVel)
-					&& v.getDistanceTraveled() >= v.getSlowingPoint()){
-					
-					if (v.getPathIndex()>= v.getWholePath().length-2 ){
-						state.setVelocity(0.0);
-						robotBehavior = Behavior.reached;
-						state.setPosition(computeDistance(v.getWholePath(), 0, v.getWholePath().length-1));
-					}
-					else if (v.getPathIndex()>= v.getCriticalPoint()-1 && v.getPathIndex()<= v.getCriticalPoint()){
-						state.setVelocity(0.0);
-						robotBehavior = Behavior.stop;
-						state.setPosition(computeDistance(v.getWholePath(), 0, v.getCriticalPoint()));
-					}
-					else if ( v.getPathIndex()< v.getCriticalPoint()){
-						robotBehavior = Behavior.minVel ;
-						integrateRK4(state, elapsedTrackingTime, deltaT, false, deltaT*v.getAccMAx(), 1.0, v.getAccMAx()*0.8); 
-					}
-					else{
-						state.setVelocity(0.0);
-						robotBehavior = Behavior.stop; // fermo
-						state.setPosition(v.getDistanceTraveled());
-					}
-					
-	
-				} 
-	
-				
-				else{
-					// caso accelerazione - vMax
-					boolean slowingDown = false;
-					robotBehavior = Behavior.moving;
-				
-					// caso Frenata
-					if(v.getDistanceTraveled() >= v.getSlowingPoint()) {
-						slowingDown = true; 
-						robotBehavior = Behavior.slowing; 
-						
-					}
-					integrateRK4(state, elapsedTrackingTime, deltaT, slowingDown, velMaxL, 1.0, v.getAccMAx());
-				}	
-	
-			} 
-			if(state.getVelocity()< 0.0){
-				state.setVelocity(0.0);
-				state.setPosition(v.getDistanceTraveled());
-			}
-			if (robotBehavior == Behavior.stop && !FreeAccess)robotBehavior = Behavior.waiting;
-			return state;
-		}
 
 
-		
 
 	public double computeDistance(PoseSteering[] path, int startIndex, int endIndex) {
 		double ret = 0.0;
@@ -189,14 +122,20 @@ public class ConstantAccelerationForwardModel {
 		return ret;
 	}
 
-	// calcola una previsione dei tempi della traiettoria futura, considera anche le saturazioni di velocità
+	// compute estimation of future trajectory, taking saturation into account
 	public  HashMap<Integer,Double> computeTs(Vehicle v) {
 
 		HashMap<Integer,Double> times = new HashMap<Integer, Double>();
-		int csEnd;
+
 		int currentPathIndex =  v.getPathIndex();
-		
-		double distanceToCp = computeDistance(v.getWholePath(), 0, v.getCriticalPoint());
+		int cp = v.getCriticalPoint();
+		double sp = v.getSlowingPoint();
+		if (cp != 0 && cp == v.getPathIndex() + v.getSpatialEnvelope().getPath().length-1){
+			cp = v.getWholeSpatialEnvelope().getPath().length-1;
+			sp = v.setSlowingPointTimes();
+		}
+
+		double distanceToCp = computeDistance(v.getWholePath(), 0, cp);
 
 		State state = new State(v.getDistanceTraveled(),v.getVelocity()+0.01);
 		double time = 0.0;
@@ -207,7 +146,7 @@ public class ConstantAccelerationForwardModel {
 		while (true) {
 
 			if (state.getPosition() >= distanceToCp || state.getVelocity() <= 0) break;
-			if (state.getPosition() >= v.getSlowingPoint()) {
+			if (state.getPosition() >= sp) {
 				if (state.getVelocity() < deltaTime*v.getAccMAx())
 					integrateRK4(state, time, deltaTime, false, deltaTime*v.getAccMAx(), 1.0, v.getAccMAx()*0.8);
 				else
@@ -218,12 +157,12 @@ public class ConstantAccelerationForwardModel {
 			}
 			time += deltaTime;
 		
-			//inserisco la previsione fatta in un hashMap(PathiIndex,TIme)
+			//create a hashMap(PathIndex,Time) where to insert computed data
 			currentPathIndex = getPathIndex(v.getWholePath(), state);
 			if (!times.containsKey(currentPathIndex)) {
 				times.put(currentPathIndex, time);
 				
-				//inserisco anche gli eventuali pathIndex saltati
+				// adding time estimation of possibly skipped path indices
 				int i = 1;
 				while (i > 0){
 					if (!times.containsKey(currentPathIndex-i) && (currentPathIndex-i)!=0) {
@@ -234,10 +173,6 @@ public class ConstantAccelerationForwardModel {
 				}
 			}
 		}
-			
-
-
-
 		double dist = computeDistance(v.getWholePath(),v.getPathIndex(), currentPathIndex);
 		while (dist <= v.getMyDistanceToSend()+1 && currentPathIndex <= v.getWholePath().length-1 ){
 			if (!times.containsKey(currentPathIndex)) {
@@ -251,9 +186,7 @@ public class ConstantAccelerationForwardModel {
 		
 	}
 	
-	public Behavior getRobotBehavior(){
-		return robotBehavior;
-	}
+
 
 	public Boolean isInsideRadius(Vehicle v , int pathIndex) {
 

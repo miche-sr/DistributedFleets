@@ -15,7 +15,7 @@ public class TestMap {
 	private static String yamlFile = null;
 
 	public static Thread initThread(int id, Vehicle.Category ctg, Pose start, Pose[] goal) {
-		Vehicle vehicle = new Vehicle(id, ctg, start, goal,yamlFile);
+		Vehicle vehicle = new Vehicle(id, ctg, start, goal, 50, 3, true,yamlFile);
 		Thread thread = new Thread(new VehicleThread(vehicle));
 		vehicleList.add(vehicle);
 		return thread;
@@ -26,7 +26,7 @@ public class TestMap {
 		Vehicle.Category a = Vehicle.Category.AMBULANCE;
 		Vehicle.Category c = Vehicle.Category.CAR;
 
-		/* Mappa */
+		/* Map With Random Obstacles */
 		yamlFile = "maps/map-partial-2.yaml";	
 		Pose start1 = new Pose(8, 20, Math.PI); Pose[] goal1 = { new Pose(75, 20, Math.PI) };
 		Pose start2 = new Pose(8, 15, Math.PI); Pose[] goal2 = { new Pose(75, 10, Math.PI) };
@@ -66,17 +66,7 @@ public class TestMap {
 		}
 	}
 	for (Vehicle vh : vehicleList){
-		vh.setRadius(rMax);
-		vh.setSecForSafety(tMax);
-		vh.setVehicleList(vehicleList);
-		vh.setMainTable(mainTable);
-		vh.setSlowingPointNew();
-		vh.setTimes();
-		vh.setSpatialEnvelope2(true,0);
-		vh.getNears();
-		vh.sendNewRr();
-		vh.setVisualization(viz);
-		vh.setFilterCs(false);
+		vh.Init(rMax, tMax, vehicleList, mainTable, viz);
 	}
 	System.out.println("\n" + "Radius "  + rMax );
 	

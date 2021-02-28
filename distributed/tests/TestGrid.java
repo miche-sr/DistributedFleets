@@ -15,7 +15,7 @@ public class TestGrid {
 	private static String yamlFile = null;
 
 	public static Thread initThread(int id, Vehicle.Category ctg, Pose start, Pose[] goal) {
-		Vehicle vehicle = new Vehicle(id, ctg, start, goal,yamlFile);
+		Vehicle vehicle = new Vehicle(id, ctg, start, goal, 50, 3, false,yamlFile);
 		Thread thread = new Thread(new VehicleThread(vehicle));
 		vehicleList.add(vehicle);
 		return thread;
@@ -30,10 +30,9 @@ public class TestGrid {
 		if (yamlFile != null) viz.setMap(yamlFile);
 		viz.setInitialTransform(35, 12, 5);
 
-		/* pose libere */
 		Pose start1 = new Pose(1, 11.2, Math.PI); 	Pose[] goal1 = { new Pose(16, 11.2, Math.PI) };	
 		Pose start2 = new Pose(1, 1.2, Math.PI); 	Pose[] goal2 = { new Pose(16, 1.2, Math.PI) };
-		Pose start3 = new Pose(1, 3.7, Math.PI); 		Pose[] goal3 = { new Pose(16, 3.7, Math.PI) };
+		Pose start3 = new Pose(1, 3.7, Math.PI); 	Pose[] goal3 = { new Pose(16, 3.7, Math.PI) };
 		Pose start4 = new Pose(1, 6.2, Math.PI); 	Pose[] goal4 = { new Pose(16, 6.2, Math.PI) };
 		Pose start5 = new Pose(1, 8.7, Math.PI); 	Pose[] goal5 = { new Pose(16, 8.7, Math.PI) };	
 
@@ -51,9 +50,9 @@ public class TestGrid {
 		
 		Pose start16 = new Pose(12.5,14, Math.PI/2); 	Pose[] goal16 = { new Pose(12.5,-1, Math.PI/2) };
 		Pose start17 = new Pose(2.5, 14, Math.PI/2) ; 	Pose[] goal17 = { new Pose(2.5,-1,  Math.PI/2) };
-		Pose start18 = new Pose(5, 14, Math.PI/2); 		Pose[] goal18 = { new Pose(5,-1,  Math.PI/2) };
+		Pose start18 = new Pose(5, 14, Math.PI/2); 	Pose[] goal18 = { new Pose(5,-1,  Math.PI/2) };
 		Pose start19 = new Pose(7.5, 14, Math.PI/2); 	Pose[] goal19 = { new Pose(7.5,-1,   Math.PI/2) };
-		Pose start20 = new Pose(10,14, Math.PI/2); 		Pose[] goal20 = { new Pose(10,-1, Math.PI/2) };
+		Pose start20 = new Pose(10,14, Math.PI/2); 	Pose[] goal20 = { new Pose(10,-1, Math.PI/2) };
 
 		Thread thread1 = initThread(1, c, start1, goal1);
 		Thread thread2 = initThread(2, c, start2, goal2);
@@ -94,18 +93,9 @@ public class TestGrid {
 		}
 	}
 	for (Vehicle vh : vehicleList){
-		vh.setRadius(rMax);
-		vh.setSecForSafety(tMax);
-		vh.setVehicleList(vehicleList);
-		vh.setMainTable(mainTable);
-		vh.setSlowingPointNew();
-		vh.setTimes();
-		vh.setSpatialEnvelope2(true,0);
-		vh.getNears();
-		vh.sendNewRr();
-		vh.setVisualization(viz);
+		vh.Init(rMax, tMax, vehicleList, mainTable, viz);
 		vh.setReplan(false);
-		vh.initViz();
+		
 	}
 	//System.out.println("\n" + "Radius "  + rMax );
 	Thread.sleep(2000);
