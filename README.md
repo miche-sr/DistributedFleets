@@ -6,3 +6,6 @@ The "distributed" folder should be used along with the packages of the centraliz
 
 Available at the github link 
 https://github.com/FedericoPecora/coordination_oru
+
+Add folder "distributed" to coordination_oru/src/main/java/se/oru/coordination/coordination_oru/
+and file "BrowserVisualizationDist.java" to coordination_oru/src/main/java/se/oru/coordination/coordination_oru/util/
