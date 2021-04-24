@@ -394,8 +394,8 @@ public int periodicEnvelopeRefreshInMillis() {
 	return 1000;
 }
 
-/************************************ 
-*** Methods for distributed fleet ***
+/************************************* 
+ // Funzioni per flotte distribuite //
 *************************************/
 public void displayRealRobotState(Polygon fp, Vehicle v,int pathIndex, PoseSteering[] path,String... extraStatusInfo) {
 	double x = path[pathIndex].getPose().getX();
@@ -409,12 +409,17 @@ public void displayRealRobotState(Polygon fp, Vehicle v,int pathIndex, PoseSteer
 			extraData += (" | " + st);
 		}
 	}
+	String color;
+	if(v.getNears().size()==0) color = "#ff0000d2"; //"#047d00";
+	else color = "#9b0ec9";
+
 	Geometry geom = TrajectoryEnvelope.getFootprint(fp, x, y, theta);
 	this.updateRobotFootprintArea(geom);
-	String jsonString = "{ \"operation\" : \"addGeometry\", \"data\" : " + this.geometryToJSONString(name, geom, "#ff0000d2", -1, true, extraData) + "}";
+	String jsonString = "{ \"operation\" : \"addGeometry\", \"data\" : " + this.geometryToJSONString(name, geom, color, -1, true, extraData) + "}"; //"#ff0000d2"
 	enqueueMessage(jsonString);
-}
 
+
+}
 
 public void displayRobotState(Polygon fp, Vehicle v,String... extraStatusInfo) {
 	double x = v.getSpatialEnvelope().getPath()[0].getPose().getX();
@@ -429,6 +434,7 @@ public void displayRobotState(Polygon fp, Vehicle v,String... extraStatusInfo) {
 		}
 	}
 	
+	
 	Geometry geom = TrajectoryEnvelope.getFootprint(fp, x, y, theta);
 	this.updateRobotFootprintArea(geom);
 	double scale = Math.sqrt(robotFootprintArea)*0.2;
@@ -440,6 +446,7 @@ public void displayRobotState(Polygon fp, Vehicle v,String... extraStatusInfo) {
 	String color;
 	if(v.getNears().size()==0) color = "#047d00";
 	else color = "#9b0ec9";
+
 
 	// Geometry circleGeom = createCircle(x, y, 2*v.getRadius());
 	// String jsonStringCircle = "{ \"operation\" : \"addGeometry\", \"data\" : " + this.geometryToJSONString("_"+name, circleGeom, color, -1, false, extraData) + "}";
